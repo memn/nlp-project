@@ -3,7 +3,7 @@
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="%d %-7level %logger{36} - %msg%n"/>
         </Console>
-        <File name="MyFile" fileName="out/output.log">
+        <File name="MyFile" fileName="out/logs/output.log">
             <PatternLayout pattern="%d %-7level %logger{36} - %msg%n"/>
         </File>
     </Appenders>
