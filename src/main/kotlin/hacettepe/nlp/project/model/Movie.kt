@@ -19,7 +19,7 @@ class Movie {
     var ratingCount = 0
     var reviewCount = 0
     var duration = ""
-    lateinit var cast: Cast
+    var cast = Cast()
     val posts = HashSet<Post>()
 
 

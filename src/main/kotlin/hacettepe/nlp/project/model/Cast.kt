@@ -8,12 +8,9 @@ package hacettepe.nlp.project.model
  *
  */
 
-class Cast(val movieId: String) {
-
-    private val cast = HashMap<String, HashSet<String>>()
+data class Cast(val castMembersByType: HashMap<String, HashSet<String>> = HashMap()) {
 
     fun add2Cast(castType: String, name: String) {
-        cast.putIfAbsent(castType, HashSet())
-        cast[castType]!!.add(name)
+        castMembersByType.getOrPut(castType, { HashSet() }).add(name)
     }
 }

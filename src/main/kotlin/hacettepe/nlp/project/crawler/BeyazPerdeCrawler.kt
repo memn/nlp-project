@@ -10,10 +10,14 @@ import hacettepe.nlp.project.model.Movie
 import hacettepe.nlp.project.model.Post
 import hacettepe.nlp.project.model.User
 import hacettepe.nlp.project.repositories.Repository
+import org.apache.commons.io.output.TeeOutputStream
 import org.apache.logging.log4j.LogManager
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import java.io.File
+import java.io.FileOutputStream
+import java.io.PrintStream
 import java.util.regex.Pattern
 
 
@@ -36,9 +40,9 @@ class BeyazPerdeCrawler : WebCrawler() {
 
 
     //we will want to print in standard "System.out" and in "file"
-//    init {
-//        System.setOut(PrintStream(TeeOutputStream(System.out, FileOutputStream(File("/data/log.txt"))), true))
-//    }
+    init {
+        System.setOut(PrintStream(TeeOutputStream(System.out, FileOutputStream(File("crawling.log"))), true))
+    }
 
     /**
      * This method receives two parameters. The first parameter is the page
@@ -52,18 +56,12 @@ class BeyazPerdeCrawler : WebCrawler() {
      */
     override fun shouldVisit(referringPage: Page, url: WebURL): Boolean {
         val href = url.url.toLowerCase()
-        return !FILTERS.matcher(href).matches() &&
-                !PAGE_FILTERS.matcher(href).matches() &&
-                href.startsWith(BASE_URL)
+        return !FILTERS.matcher(href).matches() && !PAGE_FILTERS.matcher(href).matches() && href.startsWith(BASE_URL)
     }
 
-    /**
-     * This function is called when a page is fetched and ready
-     * to be processed by your program.
-     */
     override fun visit(page: Page) {
         val url = page.webURL.url
-        logger.debug("URL: $url")
+        println("URL: $url")
 
         val parseData = page.parseData
         if (parseData is HtmlParseData) {
@@ -80,9 +78,9 @@ class BeyazPerdeCrawler : WebCrawler() {
                 scrapMovie(id, document, title, director, description, country)
             } else {
                 if (parameters[1] == "oyuncular") {
-                    scrapCast(id, document)
+                    val cast = scrapCast(document)
+                    Repository.instance.add(id, cast)
                 } else if (parameters[1] == "kullanici-elestirileri") {
-                    // allows pagination if crawler traverses
                     scrapPosts(id, document)
                 }
             }
@@ -96,11 +94,11 @@ class BeyazPerdeCrawler : WebCrawler() {
         val posts = HashSet<Post>()
         reviewElements.forEach {
             try {
-                val userId = scrapUser(it)
-                val post = scrapReview(it, userId)
+                val user = scrapUser(it)
+                Repository.instance.add(user.id, user)
+                val post = scrapReview(it, user.id)
                 posts.add(post)
-            } catch (e: Exception) {
-                // ignored
+            } catch (_: Exception) {
             }
         }
         Repository.instance.addAll(id, posts)
@@ -118,17 +116,15 @@ class BeyazPerdeCrawler : WebCrawler() {
 //        Repository.instance.add(id, post)
     }
 
-    private fun scrapUser(it: Element): String {
+    private fun scrapUser(it: Element): User {
         val userElement = it.getElementsByAttributeValueContaining("class", "card reviews-user-infos cf").first()
         val name = userElement.getElementsByAttributeValueContaining("itemprop", "author").text()
         val userId = userElement.getElementsByAttributeValueContaining("class", "item-profil").first().attr("data-targetuserid")
-        val user = User(userId, name)
-        Repository.instance.add(userId, user)
-        return userId
+        return User(userId, name)
     }
 
-    private fun scrapCast(id: String, document: Document?) {
-        val cast = Cast(id)
+    private fun scrapCast(document: Document?): Cast {
+        val cast = Cast()
         val actorsElement = document!!.getElementById("actors")
         val castMembers = actorsElement.getElementsByAttributeValue("itemtype", "http://schema.org/Person")
         var castingType = actorsElement.getElementsByAttributeValueContaining("class", "titlebar").first().text()
@@ -146,7 +142,7 @@ class BeyazPerdeCrawler : WebCrawler() {
                 cast.add2Cast(castingType, memberName.orEmpty())
             }
         }
-        Repository.instance.add(id, cast)
+        return cast
     }
 
 

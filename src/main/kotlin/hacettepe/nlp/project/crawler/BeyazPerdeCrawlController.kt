@@ -5,18 +5,7 @@ import edu.uci.ics.crawler4j.crawler.CrawlController
 import edu.uci.ics.crawler4j.fetcher.PageFetcher
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer
-import org.slf4j.LoggerFactory
 
-
-/**
- *
- * @author Memn
- * @date 17.03.2018
- *
- */
-class BeyazPerdeCrawlController
-
-val logger = LoggerFactory.getLogger(BeyazPerdeCrawlController::class.java)
 
 fun main(args: Array<String>) {
 
@@ -41,7 +30,7 @@ fun main(args: Array<String>) {
      * Be polite: Make sure that we don't send more than 1 request per
      * second (1000 milliseconds between requests).
      */
-    config.politenessDelay = 150
+    config.politenessDelay = 50
 
     /*
      * You can set the maximum crawl depth here. The default value is -1 for

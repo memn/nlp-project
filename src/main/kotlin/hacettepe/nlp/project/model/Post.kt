@@ -9,7 +9,7 @@ package hacettepe.nlp.project.model
  */
 
 class Post(val userId: String,
-           val description: String,
+           var description: String,
            val ratingValue: Double,
            val upVote: Int,
            val downVote: Int) {
