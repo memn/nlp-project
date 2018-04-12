@@ -1,8 +1,10 @@
 package hacettepe.nlp.project.preprocess
 
 import hacettepe.nlp.project.repositories.Repository
+import org.apache.commons.io.FileUtils
 import org.apache.commons.lang.StringUtils
 import org.apache.logging.log4j.LogManager
+import zemberek.morphology.analysis.WordAnalysis
 import zemberek.morphology.analysis.tr.TurkishMorphology
 import zemberek.tokenization.TurkishTokenizer
 import java.io.File
@@ -18,10 +20,8 @@ class PreProcessor {
     val logger = LogManager.getLogger(PreProcessor::class.java.name)
 
     companion object {
-        val STOP_WORDS = hashSetOf("..", "...", ":)", "olmak", "etmek", "için", "ki", "ama", "fakat", "hic", "hiç", "ragmen", "rağmen", "de", "da", "bu", "şu", "bi","ile","ve")
         val ORIGINAL_FILE = "data/original/100-k"
         val STEMMED_FILE = "data/stemmed/100-k"
-
     }
 
 }
@@ -41,6 +41,8 @@ fun main(args: Array<String>) {
 }
 
 private fun preprocess() {
+
+    FileUtils.deleteDirectory(File(PreProcessor.STEMMED_FILE))
     // we need to stem and lemmatize posts
     val tokenizer = TurkishTokenizer.DEFAULT
     val morphology = TurkishMorphology.createWithDefaults()
@@ -51,16 +53,13 @@ private fun preprocess() {
             val stemmedDescription = ArrayList<String>()
             tokenizer.tokenizeToStrings(post.description).forEach {
                 // analyze user post tokens
-                if (it.length > 1 && !PreProcessor.STOP_WORDS.contains(it)) {
+                if (it.length > 1) {
                     val analysis = morphology.analyze(it).first()
-                    if (!analysis.isUnknown) {
-                        // println("Word: $post \tStems: ${analysis.stems} \t Lemmas: ${analysis.lemma}")
-                        // store lemma instead
-                        stemmedDescription.add(analysis.lemma)
-                    } else {
-                        // nothing to do
-                        // store as is
-                        stemmedDescription.add(it)
+                    when {
+                    // nothing to do store as is
+                        analysis.isUnknown -> stemmedDescription.add(it)
+                    // store lemma instead
+                        isNotPunctuation(analysis) -> stemmedDescription.add(analysis.lemma)
                     }
                 }
             }
@@ -69,4 +68,8 @@ private fun preprocess() {
     }
     // we have lemmatized the post-reviews
     Repository.instance.saveStemmed(PreProcessor.STEMMED_FILE)
+}
+
+fun isNotPunctuation(analysis: WordAnalysis): Boolean {
+    return analysis.dictionaryItem.primaryPos.shortForm != "Punc"
 }
