@@ -23,6 +23,19 @@ import java.io.FileWriter
 class Repository {
     companion object {
         val instance = Repository()
+
+        private val ORIGINAL_FILE = "data/original/100-k"
+        private val STEMMED_FILE = "data/stemmed/100-k"
+        private val USERS_FILE_SUFFIX = "-users.json"
+        private val MOVIES_FILE_SUFFIX = "-movies.json"
+        val WORD_2_VEC_FILE = "data/word2vec/w2v.model"
+
+        fun fileName(isStemmed: Boolean, isMovies: Boolean): String {
+            var s = ""
+            s += if (isStemmed) STEMMED_FILE else ORIGINAL_FILE
+            s += if (isMovies) MOVIES_FILE_SUFFIX else USERS_FILE_SUFFIX
+            return s
+        }
     }
 
     private val logger = LogManager.getLogger(Repository::class.java.name)
@@ -32,7 +45,15 @@ class Repository {
     private val posts = HashMap<String, ArrayList<Post>>()
     private val casts = HashMap<String, Cast>()
 
-    fun read(moviesFile: File, usersFile: File) {
+    fun read(preprocessed: Boolean) {
+        read(Repository.fileName(preprocessed, true), Repository.fileName(false, false))
+    }
+
+    private fun read(moviesFileName: String, usersFileName: String) {
+        read(File(moviesFileName), File(usersFileName))
+    }
+
+    private fun read(moviesFile: File, usersFile: File) {
         movies.clear()
         users.clear()
         logger.info("Start reading files ${moviesFile.path}  &  ${usersFile.path}")
@@ -92,10 +113,11 @@ class Repository {
         }
     }
 
-    fun saveStemmed(file: String) {
+    fun saveStemmedMovies() {
+        val file = Repository.fileName(true, true)
         val filter = movies.values.filter { it.cast.castMembersByType.isNotEmpty() }
         logger.info("Writing stemmed file to: $file with movies size:${filter.size} & posts size: ${filter.sumBy { it.posts.size }}")
-        FileWriter("$file-movies.json").use {
+        FileWriter(file).use {
             it.write(Gson().toJson(filter))
         }
     }

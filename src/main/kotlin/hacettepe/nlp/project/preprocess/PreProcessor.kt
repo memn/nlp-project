@@ -1,13 +1,13 @@
 package hacettepe.nlp.project.preprocess
 
 import hacettepe.nlp.project.repositories.Repository
-import org.apache.commons.io.FileUtils
 import org.apache.commons.lang.StringUtils
 import org.apache.logging.log4j.LogManager
 import zemberek.morphology.analysis.WordAnalysis
 import zemberek.morphology.analysis.tr.TurkishMorphology
 import zemberek.tokenization.TurkishTokenizer
 import java.io.File
+import java.nio.file.Files
 
 
 /**
@@ -19,16 +19,12 @@ import java.io.File
 class PreProcessor {
     val logger = LogManager.getLogger(PreProcessor::class.java.name)
 
-    companion object {
-        val ORIGINAL_FILE = "data/original/100-k"
-        val STEMMED_FILE = "data/stemmed/100-k"
-    }
-
 }
+
 
 fun main(args: Array<String>) {
     val stemmer = PreProcessor()
-    Repository.instance.read(File("${PreProcessor.ORIGINAL_FILE}-movies.json"), File("${PreProcessor.ORIGINAL_FILE}-users.json"))
+    Repository.instance.read(false)
     stemmer.logger.info("count movies: ${Repository.instance.movies.size}")
     stemmer.logger.info("count users: ${Repository.instance.users.size}")
     stemmer.logger.info("count posts: ${Repository.instance.movies.values.sumBy { it.posts.size }}")
@@ -42,7 +38,7 @@ fun main(args: Array<String>) {
 
 private fun preprocess() {
 
-    FileUtils.deleteDirectory(File(PreProcessor.STEMMED_FILE))
+    Files.deleteIfExists(File(Repository.fileName(true, true)).toPath())
     // we need to stem and lemmatize posts
     val tokenizer = TurkishTokenizer.DEFAULT
     val morphology = TurkishMorphology.createWithDefaults()
@@ -67,7 +63,7 @@ private fun preprocess() {
         }
     }
     // we have lemmatized the post-reviews
-    Repository.instance.saveStemmed(PreProcessor.STEMMED_FILE)
+    Repository.instance.saveStemmedMovies()
 }
 
 fun isNotPunctuation(analysis: WordAnalysis): Boolean {
