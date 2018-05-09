@@ -19,7 +19,7 @@ def train_doc2vec(tokens, save_path):
     docs = [gensim.models.doc2vec.TaggedDocument(words=token, tags=['DOC_' + str(idx)])
             for idx, token in enumerate(tokens)]
 
-    path = os.path.join(utilities.data_path(), save_path)
+    path = os.path.join(utilities.doc2vec_path(), save_path)
     if os.path.exists(path):
         model = gensim.models.Doc2Vec.load(path)
     else:

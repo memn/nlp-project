@@ -24,7 +24,7 @@ class Repository {
     companion object {
         val instance = Repository()
 
-        private val ORIGINAL_FILE = "data/original/100-k"
+        private val ORIGINAL_FILE = "data/data_huge_original/100-k"
         private val USERS_FILE_SUFFIX = "-users.json"
         private val MOVIES_FILE_SUFFIX = "-movies.json"
 
@@ -109,7 +109,7 @@ class Repository {
         postCount += postSet.size
         if (postCount > 50000 * i) {
             // save when 50k
-            save("data/original/${i++ * 50}-k")
+            save("data/data_huge/original/${i++ * 50}-k")
         }
     }
 

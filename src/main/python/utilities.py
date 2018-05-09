@@ -14,6 +14,10 @@ def data_path():
     return os.path.join(project_path(), 'data')
 
 
+def doc2vec_path():
+    return os.path.join(data_path(), 'data_huge')
+
+
 def read_train():
     raw_posts_train = '%s/tokenized-data/tokenized-posts-train.json' % data_path()
     return json.load(open(raw_posts_train, 'r', encoding='utf-8'))
