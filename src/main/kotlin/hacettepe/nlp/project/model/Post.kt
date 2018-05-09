@@ -36,4 +36,7 @@ class Post(val userId: String,
         result = 31 * result + downVote
         return result
     }
+    fun ToTokenized(desc: MutableList<String>): TokenizedPost{
+        return TokenizedPost(userId, desc, ratingValue, upVote, downVote)
+    }
 }

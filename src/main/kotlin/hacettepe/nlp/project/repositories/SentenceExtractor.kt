@@ -1,7 +1,8 @@
 package hacettepe.nlp.project.repositories
 
 import com.google.gson.Gson
-import zemberek.tokenization.TurkishSentenceExtractor
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 import zemberek.tokenization.TurkishTokenizer
 import zemberek.tokenization.antlr.TurkishLexer
 import java.io.FileWriter
@@ -13,25 +14,31 @@ import java.io.FileWriter
  * @date 13.04.2018
  *
  */
+val logger: Logger = LogManager.getLogger(SentenceExtractor::class.java.name)
+
+class SentenceExtractor{}
 
 fun main(args: Array<String>) {
-    Repository.instance.read(false)
-    val tokenizer = TurkishTokenizer.builder()
-            .acceptAll()
+
+    Repository.instance.read()
+    val tokenizer = TurkishTokenizer.builder().acceptAll()
             .ignoreTypes(TurkishLexer.Punctuation, TurkishLexer.NewLine, TurkishLexer.SpaceTab)
             .build()
     val movies = Repository.instance.movies.values
-    val list: List<MutableList<String>> = TurkishSentenceExtractor.DEFAULT.fromParagraphs(movies.flatMap { it.posts.map { it.description } }).map {
-        //        TurkishTokenizer.DEFAULT.tokenizeToStrings(it)
-        tokenizer.tokenizeToStrings(it)
+    val flatMap = movies.flatMap { it.posts.map { it.ToTokenized(tokenizer.tokenizeToStrings(it.description)) } }
+    splitTrainAndTest(flatMap, "posts")
+}
+
+fun splitTrainAndTest(rawMovies: List<Any>, name: String) {
+    val trainSize = (rawMovies.size * 0.9).toInt()
+    logger.info("Total size: ${rawMovies.size}")
+    logger.info("Train size: $trainSize")
+    logger.info("Test size: ${rawMovies.size - trainSize}")
+
+    FileWriter("data/tokenized-data/tokenized-$name-train.json").use {
+        it.write(Gson().toJson(rawMovies.subList(0, trainSize)))
     }
-    FileWriter("data/word2vec/sentences-wo-puncs.json").use {
-        it.write(Gson().toJson(list))
+    FileWriter("data/tokenized-data/tokenized-$name-test.json").use {
+        it.write(Gson().toJson(rawMovies.subList(trainSize, rawMovies.size)))
     }
-//
-//    val word2VecModel = Repository.instance.readWord2VecModel()
-//    val similarity = word2VecModel.forSearch().cosineDistance("güzel", "iyi")
-//    val similarity2 = word2VecModel.forSearch().cosineDistance("güzel", "kötü")
-//    println(similarity)
-//    println(similarity2)
 }

@@ -13,7 +13,9 @@ gen### VisualStudioCode template
 gradle-app.setting
 !gradle-wrapper.jar
 .gradletasknamecache
-data
+data_old/
+data_huge/
 .*log
-/virtualenv
+/virtualenv/
+
 
